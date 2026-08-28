@@ -56,7 +56,7 @@ where
     let (event_tx, event_rx) = mpsc::channel::<(WindowId, WindowEvent)>();
     // Run the event loop.
     event_loop.run_app(&mut EventHandler {
-        insstance: wgpu,
+        instance: wgpu,
         callbacks: Some(EventCallbacks {
             event_callback,
             render_callback,
@@ -76,7 +76,7 @@ struct EventCallbacks<EF, RF> {
 }
 
 struct EventHandler<E, R, EF, RF> {
-    insstance: wgpu::Instance,
+    instance: wgpu::Instance,
     callbacks: Option<EventCallbacks<EF, RF>>,
     event_proxy: EventLoopProxy<UserEvent>,
     event_tx: mpsc::Sender<(WindowId, WindowEvent)>,
@@ -106,8 +106,8 @@ impl<
             .unwrap();
         let window = Arc::new(window);
 
-        let instance = self.insstance.clone();
-        let surface = self.insstance.create_surface(window.clone()).unwrap();
+        let instance = self.instance.clone();
+        let surface = self.instance.create_surface(window.clone()).unwrap();
 
         let event_proxy = self.event_proxy.clone();
 
@@ -163,7 +163,7 @@ impl<
             UserEvent::Exit => event_loop.exit(),
             UserEvent::CreateWindow { request, response } => {
                 let window = Arc::new(event_loop.create_window(*request).unwrap());
-                let surface = self.insstance.create_surface(window.clone()).unwrap();
+                let surface = self.instance.create_surface(window.clone()).unwrap();
                 *response.1.lock().unwrap() = Some(CreateWindowResponse { window, surface });
                 response.0.notify_one();
             }
