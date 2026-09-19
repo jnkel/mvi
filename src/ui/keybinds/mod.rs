@@ -38,6 +38,10 @@ pub struct Keybinds {
 
     /// Keybindings that apply only in insert or replace mode.
     insert_bindings: InputTrie,
+
+    /// The current clipboard.
+    /// (TODO: registers)
+    paste_buffer: Option<Vec<u8>>,
 }
 
 /// The current editor mode.
@@ -115,6 +119,7 @@ impl Keybinds {
             global_bindings: InputTrie::new(),
             normal_bindings: InputTrie::new(),
             insert_bindings: InputTrie::new(),
+            paste_buffer: None,
         };
         kb.load_config();
         kb

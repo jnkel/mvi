@@ -359,6 +359,10 @@ impl Tas {
         self.movie.frame(idx)
     }
 
+    pub fn frames(&self, range: std::range::Range<u32>) -> &[u8] {
+        self.movie.frames(range)
+    }
+
     pub fn ensure_length(&mut self, len: u32) {
         self.movie.ensure_length(len);
     }

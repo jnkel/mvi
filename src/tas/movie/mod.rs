@@ -219,6 +219,12 @@ impl Movie {
         }
     }
 
+    pub fn frames(&self, range: std::range::Range<u32>) -> &[u8] {
+        let idx = self.frame_size() * range.start as usize;
+        let size = self.frame_size() * (range.end as usize - range.start as usize);
+        &self.data[idx..][..size]
+    }
+
     pub(super) fn frame_mut(&mut self, idx: u32) -> &mut [u8] {
         self.greenzone.invalidate(idx);
         self.ensure_length(idx + 1);

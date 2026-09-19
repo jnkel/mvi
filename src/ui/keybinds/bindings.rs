@@ -288,6 +288,40 @@ impl Keybinds {
                 .set_scroll_lock(piano_roll::ScrollLock::Bottom)
         });
 
+        register(&normal, "Yank/copy", s("y"), |ctx, count| {
+            let start = ctx.tas.selected_frame();
+            let end = (start + count.max(1)).min(ctx.tas.movie().len());
+            let buf = ctx.tas.frames((start..end).into());
+            ctx.keybinds.paste_buffer = Some(buf.to_owned());
+        });
+
+        fn paste(ctx: Context, count: u32, after: bool) {
+            if let Some(buf) = &ctx.keybinds.paste_buffer {
+                let buf = buf
+                    .iter()
+                    .cycle()
+                    .take(count.max(1) as usize * buf.len())
+                    .copied()
+                    .collect::<Vec<_>>();
+                ctx.tas.start_repeatable().insert(
+                    ctx.tas,
+                    ctx.tas.selected_frame() + after as u32,
+                    &buf,
+                );
+            }
+        }
+
+        register(
+            &normal,
+            "Paste (before)",
+            vec![(c('p'), ModifiersState::SHIFT)],
+            |ctx, count| paste(ctx, count, false),
+        );
+
+        register(&normal, "Paste (after)", s("p"), |ctx, count| {
+            paste(ctx, count, true)
+        });
+
         register(&normal, "Undo", s("u"), |ctx, _| {
             ctx.tas.set_run_mode(tas::RunMode::Paused);
             ctx.tas.undo_latest();
