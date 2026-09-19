@@ -8,7 +8,7 @@ use std::{
 
 use anyhow::Context;
 use cpal::traits::{DeviceTrait, HostTrait};
-use rubato::Resampler;
+use rubato::{Resampler, audioadapter_buffers::direct::InterleavedSlice};
 
 use crate::core;
 
@@ -71,7 +71,7 @@ impl AudioWriter {
         let mut config = config.config();
         config.buffer_size = cpal::BufferSize::Fixed(device_bufsize as u32);
         let stream = device.build_output_stream(
-            &config,
+            config,
             Self::callback(Arc::downgrade(&buffer), output_sample_rate, output_channels),
             |e| println!("Audio playback error: {e:?}"),
             None,
@@ -85,7 +85,7 @@ impl AudioWriter {
             // https://docs.rs/rubato/latest/rubato/struct.SincInterpolationParameters.html
             &rubato::SincInterpolationParameters {
                 sinc_len: 256,
-                f_cutoff: 0.95,
+                f_cutoff: None,
                 oversampling_factor: 128,
                 interpolation: rubato::SincInterpolationType::Quadratic,
                 window: rubato::WindowFunction::Blackman,
@@ -136,14 +136,18 @@ impl AudioWriter {
                     self.resampler_output_buffer.resize(output_len, [0., 0.]);
                     self.resampler
                         .process_into_buffer(
-                            &audio::wrap::interleaved(
+                            &InterleavedSlice::new(
                                 self.resampler_input_buffer.as_flattened(),
                                 2,
-                            ),
-                            &mut audio::wrap::interleaved(
+                                self.resampler_input_buffer.len(),
+                            )
+                            .unwrap(),
+                            &mut InterleavedSlice::new_mut(
                                 self.resampler_output_buffer.as_flattened_mut(),
                                 2,
-                            ),
+                                output_len,
+                            )
+                            .unwrap(),
                             None,
                         )
                         .unwrap();
