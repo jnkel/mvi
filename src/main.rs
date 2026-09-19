@@ -1,3 +1,5 @@
+// Remove once wgpu is updated to 0.30
+#![recursion_limit = "256"]
 use anyhow::Result;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
